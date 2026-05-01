@@ -1,17 +1,34 @@
+import pandas as pd
 import pickle
-from src.data_ingestion import load_data
-from src.preprocessing import preprocess
-from src.train import train_model
-from src.evaluate import evaluate
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from src.model import get_models
 
-df = load_data("data/data.csv")
+def run_pipeline():
+    df = pd.read_csv("data/data.csv")
 
-X_train, X_test, y_train, y_test = preprocess(df)
+    X = df.drop("target", axis=1)
+    y = df["target"]
 
-model = train_model(X_train, y_train)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
 
-mse = evaluate(model, X_test, y_test)
-print("MSE:", mse)
+    models = get_models()
+    best_model = None
+    best_score = 0
 
-with open("model/model.pkl", "wb") as f:
-    pickle.dump(model, f)
+    for name, model in models.items():
+        model.fit(X_train, y_train)
+        preds = model.predict(X_test)
+        acc = accuracy_score(y_test, preds)
+        print(f"{name} accuracy:", acc)
+
+        if acc > best_score:
+            best_score = acc
+            best_model = model
+
+    with open("model/model.pkl", "wb") as f:
+        pickle.dump(best_model, f)
+
+    print("Best model saved with accuracy:", best_score)
