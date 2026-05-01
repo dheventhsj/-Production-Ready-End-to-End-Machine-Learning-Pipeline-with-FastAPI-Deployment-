@@ -8,10 +8,10 @@ model = pickle.load(open("model/model.pkl", "rb"))
 
 @app.get("/")
 def home():
-    return {"message": "ML Pipeline API Running"}
+    return {"status": "running"}
 
 @app.post("/predict")
-def predict(feature1: float, feature2: float):
-    data = np.array([[feature1, feature2]])
-    prediction = model.predict(data)[0]
-    return {"prediction": float(prediction)}
+def predict(age: int, income: int, experience: int):
+    data = np.array([[age, income, experience]])
+    pred = model.predict(data)[0]
+    return {"prediction": int(pred)}
